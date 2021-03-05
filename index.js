@@ -234,7 +234,7 @@ module.exports = class {
 
     /* Private */
 
-    async #createSession() {
+    async createSession() {
         const path = ""
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "create"
@@ -248,7 +248,7 @@ module.exports = class {
         return true
     }
 
-    async #createHandler() {
+    async createHandler() {
         const path = this.session+"/"
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "attach",
@@ -263,7 +263,7 @@ module.exports = class {
         return handler
     }
 
-    async #destroySession() {
+    async destroySession() {
         const path = this.session+"/"
         const result = await janusHttpTransportApi.post(this.host, path,         {
             "janus" : "destroy"
@@ -277,7 +277,7 @@ module.exports = class {
         return true 
     }
 
-    async #runner() {
+    async runner() {
         while(1) {
             const path = this.session
             let result
@@ -320,9 +320,9 @@ module.exports = class {
             console.log('Janus is already initiated')
             return
         }else{
-            if(!await this.#createSession()) return
-            this.handler = (await this.#createHandler()).handler
-            this.#runner()                               /* Consume events */
+            if(!await this.createSession()) return
+            this.handler = (await this.createHandler()).handler
+            this.runner()                               /* Consume events */
         }
     }
 
@@ -404,13 +404,13 @@ module.exports = class {
             console.log('Janus is not initiated')
             return
         }else{
-            if(!await this.#destroySession()) return
+            if(!await this.destroySession()) return
         }
         return true
     }
 
     async getOnStage(room, payload) {
-        const publishHandler = await this.#createHandler()
+        const publishHandler = await this.createHandler()
         await publishHandler.joinPublisher(room, payload)
         const answer = await publishHandler.publish(payload)
 
@@ -421,7 +421,7 @@ module.exports = class {
     }
 
     async watch(room, publisherId, payload) {
-        const subscribeHandler = await this.#createHandler()
+        const subscribeHandler = await this.createHandler()
         const offer = await subscribeHandler.joinSubscriber(room, publisherId, payload)
         return {
             handler: subscribeHandler,
