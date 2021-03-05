@@ -36,6 +36,7 @@ const Handler = class {
         this.handler = handler
         this.type = null
         this.room = null
+        this.id = null
     }
 
     /* Private */
@@ -64,6 +65,7 @@ const Handler = class {
             return false
         }
         const data = await promise
+        this.id = data.plugindata.data.id
         this.type = "publisher"
         this.room = room
         return data
@@ -181,7 +183,7 @@ const Handler = class {
         }
     }
 
-    async trickle(room, payload) {
+    async trickle(payload) {
         payload = payload || {}
         const path = this.janus.session+"/"+this.handler
         const result = await janusHttpTransportApi.post(this.janus.host, path, {
@@ -212,7 +214,7 @@ const Handler = class {
         }
         payload = payload || {}
         const path = this.janus.session+"/"+this.handler
-        const result = await janusHttpTransportApi.post(this.janus.host, path, {
+        await janusHttpTransportApi.post(this.janus.host, path, {
             "janus" : "message",
             "body" : {
                 "request" : "leave"
@@ -375,7 +377,7 @@ module.exports = class {
             console.log('Err creating janus videoRoom')
             return false
         }
-        return true
+        return result.plugindata.data.room
     }
 
     async deleteRoom(room, payload) {
