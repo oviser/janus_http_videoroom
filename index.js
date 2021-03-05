@@ -194,6 +194,32 @@ const Handler = class {
         }
         return true
     }
+
+    async unpublish() {
+        const path = this.janus.session+"/"+this.handler
+        await janusHttpTransportApi.post(this.janus.host, path, {
+            "janus" : "message",
+            "body" : {
+                "request" : "unpublish"
+            }
+        })
+        return true 
+    }
+
+    async hangup(payload) {
+        if(this.type === "publisher"){
+            await this.unpublish()
+        }
+        payload = payload || {}
+        const path = this.janus.session+"/"+this.handler
+        const result = await janusHttpTransportApi.post(this.janus.host, path, {
+            "janus" : "message",
+            "body" : {
+                "request" : "leave"
+            }
+        })
+        return true
+    }
 }
 
 module.exports = class {

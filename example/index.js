@@ -53,8 +53,6 @@ module.exports
                     if(!oooo && feeds[0] && feeds[0].publisher){
                         oooo = true
 
-                        console.log('ty67')
-            
                         const result = await j.watch(898989, feeds[0].id, {})
                         console.log('WATCH OK')
                         subscriber = result.handler
@@ -102,6 +100,10 @@ module.exports
             }
       })
     })
+
+    setTimeout(async()=>{
+        await publisher.hangup()
+    }, 30000)
 
     //await j.delete()
 })()
