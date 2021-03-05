@@ -226,7 +226,7 @@ const Handler = class {
 
 module.exports = class {
     constructor(payload) {
-        this.host = payload.ip+':'+payload.port
+        this.host = payload.host
         this.session = null                     // Janus Session id
         this.handlers = []                      // Janus plugin handler's id (videoroom)
         this.handler = null
