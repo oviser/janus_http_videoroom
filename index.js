@@ -265,7 +265,7 @@ module.exports = class {
 
     async destroySession() {
         const path = this.session+"/"
-        const result = await janusHttpTransportApi.post(this.host, path,         {
+        const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "destroy"
         })
         if(!result.janus === "success") {
@@ -370,9 +370,11 @@ module.exports = class {
                 "secret" : payload.secret,
                 "pin" : payload.pin,
                 "is_private" : payload.is_private,
-                "allowed" : payload.allowed
+                "allowed" : payload.allowed,
+                "publishers": payload.publishers
             }
         })
+        console.log(result)
         if(!result.janus === "success") {
             console.log('Err creating janus videoRoom')
             return false
