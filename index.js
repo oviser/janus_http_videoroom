@@ -374,7 +374,7 @@ module.exports = class {
                 "publishers": payload.publishers
             }
         })
-        console.log(result)
+
         if(!result.janus === "success") {
             console.log('Err creating janus videoRoom')
             return false
