@@ -1,5 +1,6 @@
 const got = require('got')
 const { v4: uuidv4 } = require('uuid')
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 const URL_HTTP_JANUS_PREFIX = "http://"
 const URL_HTTP_JANUS_SUFIX = "/janus/"
@@ -278,21 +279,33 @@ module.exports = class {
     }
 
     async runner() {
+        let err = 0
         while(1) {
-            const path = this.session
-            let result
-            try{
-                result = await janusHttpTransportApi.get(this.host, path)
-            }catch(_){
-                console.log('Err polling janus videoRoom')
-                continue
-            }
-            if(!result || !result.janus === "success") {
-                console.log('Err polling janus videoRoom')
-                continue
-            }
-            if(result.plugindata) {
-                event.call(result.transaction, result)
+            if(err > 5) {
+                this.init()
+                console.log('Err Janus 5/5. ReInit')
+                return
+            }else{
+                const path = this.session
+                let result
+                try{
+                    result = await janusHttpTransportApi.get(this.host, path)
+                }catch(_){
+                    console.log('Err polling janus videoRoom ['+err+"/5]")
+                    err ++
+                    await delay(2000)
+                    continue
+                }
+                if(!result || !result.janus === "success") {
+                    console.log('Err polling janus videoRoom ['+err+"/5]")
+                    err ++
+                    await delay(2000)
+                    continue
+                }
+                err = 0
+                if(result.plugindata) {
+                    event.call(result.transaction, result)
+                }
             }
         }
     }
@@ -316,14 +329,9 @@ module.exports = class {
     /* Public */
 
     async init() {
-        if(this.session) {
-            console.log('Janus is already initiated')
-            return
-        }else{
-            if(!await this.createSession()) return
-            this.handler = (await this.createHandler()).handler
-            this.runner()                               /* Consume events */
-        }
+        if(!await this.createSession()) return
+        this.handler = (await this.createHandler()).handler
+        this.runner()                               /* Consume events */
     }
 
     async exist(room) {
