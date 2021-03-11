@@ -13,19 +13,20 @@ const janusHttpTransportApi = {
     buildUrl(host, path) {
         return URL_HTTP_JANUS_PREFIX+host+URL_HTTP_JANUS_SUFIX+path
     },
-    async post(host, path, payload) {
+    async post(host, path, payload, secret) {
         const url = this.buildUrl(host, path)
         if(!payload.transaction) {
             payload.transaction = this.getTransaction()
         }
+        payload.apisecret = secret
         const {body} = await got.post(url, {
             json: payload,
             responseType: 'json'
         })
         return body
     },
-    async get(host, path) {
-        const url = this.buildUrl(host, path)
+    async get(host, path, secret) {
+        const url = this.buildUrl(host, path)+"?apisecret="+secret
         const {body} = await got.get(url)
         return JSON.parse(body)
     }
@@ -48,7 +49,7 @@ const Handler = class {
         const transaction = janusHttpTransportApi.getTransaction()
         const promise = new Promise((resolve, reject)=>{
             event.add(transaction, resolve)
-        })
+        }, this.janus.secret)
         const result = await janusHttpTransportApi.post(this.janus.host, path, {
             "transaction": transaction,
             "janus" : "message",
@@ -60,7 +61,7 @@ const Handler = class {
                 "display" : payload.display,
                 "token" : payload.token
             }
-        })
+        }, this.janus.secret)
         if(!result.janus === "success") {
             console.log('Err publishing on janus videoRoom')
             return false
@@ -78,7 +79,7 @@ const Handler = class {
         const transaction = janusHttpTransportApi.getTransaction()
         const promise = new Promise((resolve, reject)=>{
             event.add(transaction, resolve)
-        })
+        }, this.janus.secret)
         const result = await janusHttpTransportApi.post(this.janus.host, path, {
             "transaction": transaction,
             "janus" : "message",
@@ -101,7 +102,7 @@ const Handler = class {
                 "spatial_layer" : payload.spatial_layer,
                 "temporal_layer" : payload.temporal_layer,
             }
-        })
+        }, this.janus.secret)
         if(!result.janus === "ack") {
             console.log('Err watching on janus videoRoom')
             return false
@@ -123,7 +124,7 @@ const Handler = class {
         const transaction = janusHttpTransportApi.getTransaction()
         const promise = new Promise((resolve, reject)=>{
             event.add(transaction, resolve)
-        })
+        }, this.janus.secret)
         const result = await janusHttpTransportApi.post(this.janus.host, path, {
             "transaction": transaction,
             "janus" : "message",
@@ -142,7 +143,7 @@ const Handler = class {
                 "audio_active_packets" : payload.audio_active_packets
             },
             "jsep": payload.jsep
-        })
+        }, this.janus.secret)
         if(!result.janus === "success") {
             console.log('Err publishing on janus videoRoom')
             return false
@@ -162,7 +163,7 @@ const Handler = class {
         const transaction = janusHttpTransportApi.getTransaction()
         const promise = new Promise((resolve, reject)=>{
             event.add(transaction, resolve)
-        })
+        }, this.janus.secret)
         const result = await janusHttpTransportApi.post(this.janus.host, path, {
             "transaction": transaction,
             "janus" : "message",
@@ -170,7 +171,7 @@ const Handler = class {
                 "request" : "start"
             },
             "jsep": payload.jsep
-        })
+        }, this.janus.secret)
         if(!result.janus === "success") {
             console.log('Err publishing on janus videoRoom')
             return false
@@ -190,7 +191,7 @@ const Handler = class {
         const result = await janusHttpTransportApi.post(this.janus.host, path, {
             "janus" : "trickle",
             "candidate" : payload.ice
-        })
+        }, this.janus.secret)
         if(!result.janus === "success") {
             console.log('Err trickle on janus videoRoom')
             return false
@@ -205,7 +206,7 @@ const Handler = class {
             "body" : {
                 "request" : "unpublish"
             }
-        })
+        }, this.janus.secret)
         return true 
     }
 
@@ -220,7 +221,7 @@ const Handler = class {
             "body" : {
                 "request" : "leave"
             }
-        })
+        }, this.janus.secret)
         return true
     }
 }
@@ -228,6 +229,7 @@ const Handler = class {
 module.exports = class {
     constructor(payload) {
         this.host = payload.host
+        this.secret = payload.secret
         this.session = null                     // Janus Session id
         this.handlers = []                      // Janus plugin handler's id (videoroom)
         this.handler = null
@@ -239,7 +241,7 @@ module.exports = class {
         const path = ""
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "create"
-        })
+        }, this.secret)
         if(!result.janus === "success" || ! result.data) {
             console.log('Err init janus')
             return false
@@ -254,7 +256,7 @@ module.exports = class {
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "attach",
             "plugin" : "janus.plugin.videoroom"
-        })
+        }, this.secret)
         if(!result.janus === "success" || ! result.data) {
             console.log('Err handler janus')
             return false
@@ -268,7 +270,7 @@ module.exports = class {
         const path = this.session+"/"
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "destroy"
-        })
+        }, this.secret)
         if(!result.janus === "success") {
             console.log('Err destroying janus session')
             return false
@@ -289,8 +291,9 @@ module.exports = class {
                 const path = this.session
                 let result
                 try{
-                    result = await janusHttpTransportApi.get(this.host, path)
+                    result = await janusHttpTransportApi.get(this.host, path, this.secret)
                 }catch(_){
+                    console.log(_)
                     console.log('Err polling janus videoRoom ['+err+"/5]")
                     err ++
                     await delay(2000)
@@ -318,7 +321,7 @@ module.exports = class {
                 "request" : "listparticipants",
                 "room" : room
             }
-        })
+        }, this.secret)
         if(!result.janus === "success") {
             console.log('Err getFeeds on janus videoRoom')
             return false
@@ -342,7 +345,7 @@ module.exports = class {
                 "request" : "exists",
                 "room" : room
             }
-        })
+        }, this.secret)
         if(!result.janus === "success") {
             console.log('Err exist check janus videoRoom')
             return false
@@ -357,7 +360,7 @@ module.exports = class {
             "body" : {
                 "request" : "list"
             }
-        })
+        }, this.secret)
         if(!result.janus === "success") {
             console.log('Err listing janus videoRoom')
             return false
@@ -381,7 +384,7 @@ module.exports = class {
                 "allowed" : payload.allowed,
                 "publishers": payload.publishers
             }
-        })
+        }, this.secret)
 
         if(!result.janus === "success") {
             console.log('Err creating janus videoRoom')
@@ -401,7 +404,7 @@ module.exports = class {
                 "secret" : payload.secret,
                 "permanent" : payload.permanent
             }
-        })
+        }, this.secret)
         if(!result.janus === "success") {
             console.log('Err deleting janus videoRoom')
             return false
