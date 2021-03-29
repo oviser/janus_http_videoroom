@@ -382,7 +382,9 @@ module.exports = class {
                 "pin" : payload.pin,
                 "is_private" : payload.is_private,
                 "allowed" : payload.allowed,
-                "publishers": payload.publishers
+                "publishers": payload.publishers,
+                "bitrate": payload.bitrate,
+                "bitrate_cap": payload.bitrate_cap
             }
         }, this.secret)
 
