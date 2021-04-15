@@ -332,8 +332,10 @@ module.exports = class {
     /* Public */
 
     async init() {
-        if(!await this.createSession()) return
-        this.handler = (await this.createHandler()).handler
+        const result = await this.createSession()
+        if(result) {
+            this.handler = (await this.createHandler()).handler
+        }
         this.runner()                               /* Consume events */
     }
 
@@ -349,6 +351,9 @@ module.exports = class {
         if(!result.janus === "success") {
             console.log('Err exist check janus videoRoom')
             return false
+        }
+        if(!result.plugindata || !result.plugindata.data) {
+            throw new Error('Err exist check janus videoRoom')
         }
         return result.plugindata.data.exists
     }
