@@ -233,6 +233,7 @@ module.exports = class {
         this.session = null                     // Janus Session id
         this.handlers = []                      // Janus plugin handler's id (videoroom)
         this.handler = null
+        this.killed = false
     }
 
     /* Private */
@@ -282,7 +283,7 @@ module.exports = class {
 
     async runner() {
         let err = 0
-        while(1) {
+        while(!this.killed) {
             if(err > 5) {
                 this.init()
                 console.log('Err Janus 5/5. ReInit')
@@ -337,6 +338,10 @@ module.exports = class {
             this.handler = (await this.createHandler()).handler
         }
         this.runner()                               /* Consume events */
+    }
+
+    kill() {
+        this.killed = true
     }
 
     async exist(room) {
