@@ -234,6 +234,7 @@ module.exports = class {
         this.handlers = []                      // Janus plugin handler's id (videoroom)
         this.handler = null
         this.killed = false
+        this.crashed = 0
     }
 
     /* Private */
@@ -285,7 +286,11 @@ module.exports = class {
         let err = 0
         while(!this.killed) {
             console.log('JANUS WORKER '+this.host)
-            if(err > 5) {
+            if(err > 5 && this.crashed >= 5) {
+                this.destroy()
+                return
+            }else if(err > 5) {
+                this.crashed ++
                 this.init()
                 console.log('Err Janus 5/5. ReInit')
                 return
@@ -308,6 +313,7 @@ module.exports = class {
                     continue
                 }
                 err = 0
+                this.crashed = 0
                 if(result.plugindata) {
                     event.call(result.transaction, result)
                 }
@@ -345,6 +351,8 @@ module.exports = class {
         console.log('killed '+this.host)
         this.killed = true
     }
+
+    destroy() {}
 
     async exist(room) {
         const path = this.session+"/"+this.handler
