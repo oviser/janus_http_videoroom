@@ -284,6 +284,7 @@ module.exports = class {
     async runner() {
         let err = 0
         while(!this.killed) {
+            console.log('JANUS WORKER '+this.host)
             if(err > 5) {
                 this.init()
                 console.log('Err Janus 5/5. ReInit')
@@ -341,6 +342,7 @@ module.exports = class {
     }
 
     kill() {
+        console.log('killed '+this.host)
         this.killed = true
     }
 
