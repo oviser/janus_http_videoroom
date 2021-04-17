@@ -286,10 +286,10 @@ module.exports = class {
         let err = 0
         while(!this.killed) {
             console.log('JANUS WORKER '+this.host)
-            if(err > 5 && this.crashed >= 3) {
+            if(err >= 2 && this.crashed >= 2) {
                 this.destroy(this.host)
                 return
-            }else if(err > 5) {
+            }else if(err >= 2) {
                 this.crashed ++
                 this.init()
                 console.log('Err Janus 5/5. ReInit')
