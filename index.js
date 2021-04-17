@@ -286,13 +286,13 @@ module.exports = class {
         let err = 0
         while(!this.killed) {
             console.log('JANUS WORKER '+this.host)
-            if(err >= 2 && this.crashed >= 2) {
+            if(err >= 2 && this.crashed >= 3) {
                 this.destroy(this.host)
                 return
             }else if(err >= 2) {
                 this.crashed ++
                 this.init()
-                console.log('Err Janus 5/5. ReInit')
+                console.log('Err Janus 2/2. ReInit')
                 return
             }else{
                 const path = this.session
@@ -301,13 +301,13 @@ module.exports = class {
                     result = await janusHttpTransportApi.get(this.host, path, this.secret)
                 }catch(_){
                     console.log(_)
-                    console.log('Err polling janus videoRoom ['+err+"/5]")
+                    console.log('Err polling janus videoRoom ['+err+"/2]")
                     err ++
                     await delay(2000)
                     continue
                 }
                 if(!result || !result.janus === "success") {
-                    console.log('Err polling janus videoRoom ['+err+"/5]")
+                    console.log('Err polling janus videoRoom ['+err+"/2]")
                     err ++
                     await delay(2000)
                     continue
