@@ -286,8 +286,8 @@ module.exports = class {
         let err = 0
         while(!this.killed) {
             console.log('JANUS WORKER '+this.host)
-            if(err > 5 && this.crashed >= 5) {
-                this.destroy()
+            if(err > 5 && this.crashed >= 3) {
+                this.destroy(this.host)
                 return
             }else if(err > 5) {
                 this.crashed ++
@@ -340,9 +340,14 @@ module.exports = class {
     /* Public */
 
     async init() {
-        const result = await this.createSession()
-        if(result) {
-            this.handler = (await this.createHandler()).handler
+        let result = null
+        try{
+            result = await this.createSession()
+            if(result) {
+                this.handler = (await this.createHandler()).handler
+            }
+        }catch(_){
+            console.log('Janus off #9')
         }
         this.runner()                               /* Consume events */
     }
