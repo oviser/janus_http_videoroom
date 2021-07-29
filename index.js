@@ -66,6 +66,7 @@ const Handler = class {
             console.log('Err publishing on janus videoRoom')
             return false
         }
+        console.log(result)
         const data = await promise
         this.id = data.plugindata.data.id
         this.type = "publisher"
@@ -467,5 +468,27 @@ module.exports = class {
             handler: subscribeHandler,
             offer: offer
         }
+    }
+
+    async rtpForward(room, payload) {
+        payload = payload || {}
+        const path = this.session+"/"+this.handler
+        const result = await janusHttpTransportApi.post(this.host, path, {
+            "janus" : "message",
+            "body" : {
+                "request" : "rtp_forward",
+                "room" : room,
+                "publisher_id": payload.publisher_id,
+                "host": payload.host,
+                "host_family": payload.host_family,
+                "streams": payload.streams
+            },
+            "srtp_suite": payload.srtp_suite,
+            "srtp_crypto": payload.srtp_crypto
+        }, this.secret)
+
+        console.log('test')
+        console.log(result)
+        return true
     }
 }
