@@ -402,7 +402,9 @@ module.exports = class {
             "body" : {
                 "request" : "create",
                 "room" : room,
-                "permanent" : payload.permanent,
+                "permanent": payload.permanent,
+                audiolevel_ext: true,
+                audiolevel_event: true,
                 "description" : payload.description,
                 "secret" : payload.secret,
                 "pin" : payload.pin,
