@@ -307,6 +307,7 @@ module.exports = class {
                     await delay(2000)
                     continue
                 }
+                console.log(result)
                 if(!result || !result.janus === "success") {
                     console.log('Err polling janus videoRoom ['+err+"/2]")
                     err ++
@@ -480,15 +481,15 @@ module.exports = class {
                 "room" : room,
                 "publisher_id": payload.publisher_id,
                 "host": payload.host,
-                "host_family": payload.host_family,
-                "streams": payload.streams
-            },
-            "srtp_suite": payload.srtp_suite,
-            "srtp_crypto": payload.srtp_crypto
+                "host_family": "ipv4",
+                "video_port": 9954,
+                "audio_port": 9854,
+                //"simulcast": true
+            }
         }, this.secret)
-
-        console.log('test')
+        console.log('result')
         console.log(result)
+        console.log(result.plugindata.data.rtp_stream)
         return true
     }
 }
