@@ -481,17 +481,17 @@ module.exports = class {
                 "room" : room,
                 "publisher_id": payload.publisher_id,
                 "host": payload.host,
-                "host_family": "ipv4",
-                "video_port": 9954,
-                "audio_port": 9854,
-                "video_rtcp_port": 9984,
-                "audio_rtcp_port": 9994,
-                //"simulcast": true
+                "host_family": payload.host_family,
+                "video_port": payload.video_port,
+                "audio_port": payload.audio_port,
+                "video_rtcp_port": payload.video_rtcp_port,
+                "audio_rtcp_port": payload.audio_rtcp_port
             }
         }, this.secret)
-        console.log('result')
-        console.log(result)
-        console.log(result.plugindata.data.rtp_stream)
+        if(!result.janus === "success") {
+            console.log('Err deleting janus videoRoom')
+            return false
+        }
         return true
     }
 }
