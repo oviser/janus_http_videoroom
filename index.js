@@ -484,6 +484,8 @@ module.exports = class {
                 "host_family": "ipv4",
                 "video_port": 9954,
                 "audio_port": 9854,
+                "video_rtcp_port": 9984,
+                "audio_rtcp_port": 9994,
                 //"simulcast": true
             }
         }, this.secret)
