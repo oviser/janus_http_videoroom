@@ -232,7 +232,6 @@ module.exports = class {
         this.host = payload.host
         this.secret = payload.secret
         this.session = null                     // Janus Session id
-        this.handlers = []                      // Janus plugin handler's id (videoroom)
         this.handler = null
         this.killed = false
         this.crashed = 0
@@ -265,7 +264,6 @@ module.exports = class {
             return false
         }
         const handler = new Handler(this, result.data.id)
-        this.handlers.push(handler)
         return handler
     }
 
@@ -307,7 +305,6 @@ module.exports = class {
                     await delay(2000)
                     continue
                 }
-                console.log(result)
                 if(!result || !result.janus === "success") {
                     console.log('Err polling janus videoRoom ['+err+"/2]")
                     err ++
