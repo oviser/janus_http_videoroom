@@ -351,12 +351,11 @@ module.exports = class {
         this.runner()                               /* Consume events */
     }
 
-    kill() {
+    async kill() {
         console.log('killed '+this.host)
         this.killed = true
+        await this.delete()
     }
-
-    destroy() {}
 
     async exist(room) {
         const path = this.session+"/"+this.handler
