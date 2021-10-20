@@ -211,11 +211,7 @@ const Handler = class {
         return true 
     }
 
-    async hangup(payload) {
-        if(this.type === "publisher"){
-            await this.unpublish()
-        }
-        payload = payload || {}
+    async leave() {
         const path = this.janus.session+"/"+this.handler
         await janusHttpTransportApi.post(this.janus.host, path, {
             "janus" : "message",
@@ -224,6 +220,19 @@ const Handler = class {
             }
         }, this.janus.secret)
         return true
+    }
+
+    async detach() {
+        const path = this.janus.session+"/"+this.handler
+        await janusHttpTransportApi.post(this.janus.host, path, {
+            "janus" : "detach",
+        }, this.janus.secret)
+        return true
+    }
+
+    async hangup() {
+        await this.leave()
+        await this.detach()
     }
 }
 
