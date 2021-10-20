@@ -494,9 +494,31 @@ module.exports = class {
             }
         }, this.secret)
         if(!result.janus === "success") {
-            console.log('Err deleting janus videoRoom')
+            console.log('Err creating janus videoRoom rtpForward')
             return false
         }
+        console.log('RTP FORWARD')
+        console.log(result.plugindata)
+        return true
+    }
+
+    async stopRtpForward(room, payload) {
+        payload = payload || {}
+        const path = this.session+"/"+this.handler
+        const result = await janusHttpTransportApi.post(this.host, path, {
+            "janus" : "message",
+            "body" : {
+                "request" : "stop_rtp_forward",
+                "room" : room,
+                "publisher_id": payload.publisher_id,
+                "stream_id": payload.stream_id
+            }
+        }, this.secret)
+        if(!result.janus === "success") {
+            console.log('Err stop janus videoRoom rtp forward')
+            return false
+        }
+        console.log(result)
         return true
     }
 }
