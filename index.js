@@ -497,9 +497,12 @@ module.exports = class {
             console.log('Err creating janus videoRoom rtpForward')
             return false
         }
-        console.log('RTP FORWARD')
-        console.log(result.plugindata)
-        return true
+        if(data.plugindata && data.plugindata.data && data.plugindata.data.rtp_stream) {
+            return true
+        }else{
+            console.log('Err rtpForwarding on janus videoRoom')
+            return false
+        }
     }
 
     async stopRtpForward(room, payload) {
