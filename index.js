@@ -521,7 +521,6 @@ module.exports = class {
             console.log('Err stop janus videoRoom rtp forward')
             return false
         }
-        console.log(result)
         return true
     }
 }
