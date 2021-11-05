@@ -66,6 +66,7 @@ const Handler = class {
             console.log('Err publishing on janus videoRoom')
             return false
         }
+        console.log(result)
         const data = await promise
         this.id = data.plugindata.data.id
         this.type = "publisher"
@@ -210,11 +211,7 @@ const Handler = class {
         return true 
     }
 
-    async hangup(payload) {
-        if(this.type === "publisher"){
-            await this.unpublish()
-        }
-        payload = payload || {}
+    async leave() {
         const path = this.janus.session+"/"+this.handler
         await janusHttpTransportApi.post(this.janus.host, path, {
             "janus" : "message",
@@ -224,6 +221,19 @@ const Handler = class {
         }, this.janus.secret)
         return true
     }
+
+    async detach() {
+        const path = this.janus.session+"/"+this.handler
+        await janusHttpTransportApi.post(this.janus.host, path, {
+            "janus" : "detach",
+        }, this.janus.secret)
+        return true
+    }
+
+    async hangup() {
+        await this.leave()
+        await this.detach()
+    }
 }
 
 module.exports = class {
@@ -231,7 +241,6 @@ module.exports = class {
         this.host = payload.host
         this.secret = payload.secret
         this.session = null                     // Janus Session id
-        this.handlers = []                      // Janus plugin handler's id (videoroom)
         this.handler = null
         this.killed = false
         this.crashed = 0
@@ -264,7 +273,6 @@ module.exports = class {
             return false
         }
         const handler = new Handler(this, result.data.id)
-        this.handlers.push(handler)
         return handler
     }
 
@@ -352,12 +360,11 @@ module.exports = class {
         this.runner()                               /* Consume events */
     }
 
-    kill() {
+    async kill() {
         console.log('killed '+this.host)
         this.killed = true
+        await this.delete()
     }
-
-    destroy() {}
 
     async exist(room) {
         const path = this.session+"/"+this.handler
@@ -467,5 +474,53 @@ module.exports = class {
             handler: subscribeHandler,
             offer: offer
         }
+    }
+
+    async rtpForward(room, payload) {
+        payload = payload || {}
+        const path = this.session+"/"+this.handler
+        const result = await janusHttpTransportApi.post(this.host, path, {
+            "janus" : "message",
+            "body" : {
+                "request" : "rtp_forward",
+                "room" : room,
+                "publisher_id": payload.publisher_id,
+                "host": payload.host,
+                "host_family": payload.host_family,
+                "video_port": payload.video_port,
+                "audio_port": payload.audio_port,
+                "video_rtcp_port": payload.video_rtcp_port,
+                "audio_rtcp_port": payload.audio_rtcp_port
+            }
+        }, this.secret)
+        if(!result.janus === "success") {
+            console.log('Err creating janus videoRoom rtpForward')
+            return false
+        }
+        if(result.plugindata && result.plugindata.data && result.plugindata.data.rtp_stream) {
+            return result.plugindata.data
+        }else{
+            console.log('Err rtpForwarding on janus videoRoom')
+            return false
+        }
+    }
+
+    async stopRtpForward(room, payload) {
+        payload = payload || {}
+        const path = this.session+"/"+this.handler
+        const result = await janusHttpTransportApi.post(this.host, path, {
+            "janus" : "message",
+            "body" : {
+                "request" : "stop_rtp_forward",
+                "room" : room,
+                "publisher_id": payload.publisher_id,
+                "stream_id": payload.stream_id
+            }
+        }, this.secret)
+        if(!result.janus === "success") {
+            console.log('Err stop janus videoRoom rtp forward')
+            return false
+        }
+        return true
     }
 }
