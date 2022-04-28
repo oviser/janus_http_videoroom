@@ -399,7 +399,9 @@ module.exports = class {
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "message",
             "body" : {
-                "request" : "create",
+                "request": "create",
+                "record": true,
+                "rec_dir": "/tmp",
                 "room" : room,
                 "permanent" : payload.permanent,
                 "description" : payload.description,
