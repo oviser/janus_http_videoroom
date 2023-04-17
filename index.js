@@ -418,7 +418,8 @@ module.exports = class {
                 "allowed" : payload.allowed,
                 "publishers": payload.publishers,
                 "bitrate": payload.bitrate,
-                "bitrate_cap": payload.bitrate_cap
+                "bitrate_cap": payload.bitrate_cap,
+                "videoorient_ext": false // see: https://groups.google.com/g/meetecho-janus/c/kOXNFn8Ulbs/m/jg7QTbUVBAAJ
             }
         }, this.secret)
 
