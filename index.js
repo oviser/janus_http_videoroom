@@ -314,7 +314,36 @@ module.exports = class {
                     await delay(2000)
                     continue
                 }
-                if(!result || !result.janus === "success") {
+                if(!result ||
+                    result.janus === "error" ||
+                    (result.janus === "success" &&
+                        result.plugindata &&
+                        result.plugindata.data &&
+                        result.plugindata.data.error &&
+                        result.plugindata.data.error_code
+                    )
+                ) {
+                    if (result) {
+                        let plugin = false
+                        let reason
+                        if (result.error) {
+                            reason = result.error.reason
+                        }
+                        if (!reason && result.plugindata && result.plugindata.data) {
+                            reason = result.plugindata.data.error
+                        }
+                        let code
+                        if (result.error) {
+                            code = result.error.code
+                        }
+                        if (!code && result.plugindata && result.plugindata.data) {
+                            code = result.plugindata.data.error_code
+                            plugin = true
+                        }
+                        console.log(
+                            `Err Janus ${plugin ? "plugin Videoroom" : ""} [(${code}) ${reason}]`
+                        )
+                    }
                     console.log('Err polling janus videoRoom ['+err+"/2]")
                     err ++
                     await delay(2000)
