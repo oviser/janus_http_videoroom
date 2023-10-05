@@ -62,15 +62,35 @@ const Handler = class {
                 "token" : payload.token
             }
         }, this.janus.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err publishing on janus videoRoom')
             return false
         }
-        console.log(result)
         const data = await promise
-        this.id = data.plugindata.data.id
         this.type = "publisher"
         this.room = room
+
+        if(isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
+            console.log('Err join publisher on janus videoRoom')
+            return false
+        }
+
+        if (!(data.plugindata &&
+        data.plugindata.data &&
+        data.plugindata.data.videoroom == "joined")) {
+            console.log('Err join publisher on janus videoRoom')
+            return false
+        }
+
+        this.id = data.plugindata.data.id
         return data
     }
 
@@ -104,19 +124,35 @@ const Handler = class {
                 "temporal_layer" : payload.temporal_layer,
             }
         }, this.janus.secret)
-        if(!result.janus === "ack") {
+        if(isJanusError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err watching on janus videoRoom')
             return false
         }
         const data = await promise
         this.type = "subscriber"
         this.room = room
-        if(data.jsep && data.jsep.sdp) {
-            return data.jsep.sdp
-        }else{
+        if(isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
+            console.log('Err publishing on janus videoRoom')
+            return false
+        }
+        if(!(data.plugindata &&
+        data.plugindata.data &&
+        data.plugindata.data.videoroom == "attached" &&
+        data.jsep &&
+        data.jsep.sdp)) {
             console.log('Err watching on janus videoRoom')
             return false
         }
+
+        return data.jsep.sdp
     }
 
     async publish(payload) {
@@ -145,17 +181,32 @@ const Handler = class {
             },
             "jsep": payload.jsep
         }, this.janus.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err publishing on janus videoRoom')
             return false
         }
         const data = await promise
-        if(data.jsep && data.jsep.sdp) {
-            return data.jsep.sdp
-        }else{
+        if(isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err publishing on janus videoRoom')
             return false
         }
+        if (!(data.plugindata &&
+        data.plugindata.data &&
+        data.plugindata.data.configured &&
+        data.jsep && data.jsep.sdp)) {
+            console.log('Err publishing on janus videoRoom')
+            return false
+        }
+
+        return data.jsep.sdp
     }
 
     async answer(payload) {
@@ -173,17 +224,30 @@ const Handler = class {
             },
             "jsep": payload.jsep
         }, this.janus.secret)
-        if(!result.janus === "success") {
+        if (isJanusError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err publishing on janus videoRoom')
             return false
         }
         const data = await promise
-        if(data.plugindata && data.plugindata.data && data.plugindata.data.started) {
-            return true
-        }else{
+        if (isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err publishing on janus videoRoom')
             return false
         }
+        if (!(data.plugindata &&
+        data.plugindata.data &&
+        data.plugindata.data.started)) {
+            console.log('Err publishing on janus videoRoom')
+            return false
+        }
+        return true
     }
 
     async trickle(payload) {
@@ -193,7 +257,11 @@ const Handler = class {
             "janus" : "trickle",
             "candidate" : payload.ice
         }, this.janus.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err trickle on janus videoRoom')
             return false
         }
@@ -253,7 +321,11 @@ module.exports = class {
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "create"
         }, this.secret)
-        if(!result.janus === "success" || ! result.data) {
+        if(isJanusError(result) || !result.data) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err init janus')
             return false
         }else{
@@ -268,7 +340,11 @@ module.exports = class {
             "janus" : "attach",
             "plugin" : "janus.plugin.videoroom"
         }, this.secret)
-        if(!result.janus === "success" || ! result.data) {
+        if(isJanusError(result) || !result.data) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err handler janus')
             return false
         }
@@ -281,7 +357,11 @@ module.exports = class {
         const result = await janusHttpTransportApi.post(this.host, path, {
             "janus" : "destroy"
         }, this.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err destroying janus session')
             return false
         }else{
@@ -314,35 +394,10 @@ module.exports = class {
                     await delay(2000)
                     continue
                 }
-                if(!result ||
-                    result.janus === "error" ||
-                    (result.janus === "success" &&
-                        result.plugindata &&
-                        result.plugindata.data &&
-                        result.plugindata.data.error &&
-                        result.plugindata.data.error_code
-                    )
-                ) {
-                    if (result) {
-                        let plugin = false
-                        let reason
-                        if (result.error) {
-                            reason = result.error.reason
-                        }
-                        if (!reason && result.plugindata && result.plugindata.data) {
-                            reason = result.plugindata.data.error
-                        }
-                        let code
-                        if (result.error) {
-                            code = result.error.code
-                        }
-                        if (!code && result.plugindata && result.plugindata.data) {
-                            code = result.plugindata.data.error_code
-                            plugin = true
-                        }
-                        console.log(
-                            `Err Janus ${plugin ? "plugin Videoroom" : ""} [(${code}) ${reason}]`
-                        )
+                if(isJanusError(result) || isJanusPluginError(result)) {
+                    let janusErr = buildJanusError(result)
+                    if (janusErr) {
+                        console.log(janusErr)
                     }
                     console.log('Err polling janus videoRoom ['+err+"/2]")
                     err ++
@@ -367,7 +422,17 @@ module.exports = class {
                 "room" : room
             }
         }, this.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result) || isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
+            console.log('Err getFeeds on janus videoRoom')
+            return false
+        }
+        if (!(result.plugindata &&
+        result.plugindata.data &&
+        result.plugindata.data.participants)) {
             console.log('Err getFeeds on janus videoRoom')
             return false
         }
@@ -404,7 +469,11 @@ module.exports = class {
                 "room" : room
             }
         }, this.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result) || isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err exist check janus videoRoom')
             return false
         }
@@ -422,7 +491,17 @@ module.exports = class {
                 "request" : "list"
             }
         }, this.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result) || isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
+            console.log('Err listing janus videoRoom')
+            return false
+        }
+        if (!(result.plugindata &&
+        result.plugindata.data &&
+        result.plugindata.data.list)) {
             console.log('Err listing janus videoRoom')
             return false
         }
@@ -452,7 +531,17 @@ module.exports = class {
             }
         }, this.secret)
 
-        if(!result.janus === "success") {
+        if(isJanusError(result) || isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
+            console.log('Err creating janus videoRoom')
+            return false
+        }
+        if (!(result.plugindata &&
+        result.plugindata.data &&
+        result.plugindata.data.room)) {
             console.log('Err creating janus videoRoom')
             return false
         }
@@ -471,7 +560,11 @@ module.exports = class {
                 "permanent" : payload.permanent
             }
         }, this.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result) || isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err deleting janus videoRoom')
             return false
         }
@@ -525,7 +618,11 @@ module.exports = class {
                 "audio_rtcp_port": payload.audio_rtcp_port
             }
         }, this.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result) || isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err creating janus videoRoom rtpForward')
             return false
         }
@@ -549,10 +646,50 @@ module.exports = class {
                 "stream_id": payload.stream_id
             }
         }, this.secret)
-        if(!result.janus === "success") {
+        if(isJanusError(result) || isJanusPluginError(result)) {
+            let janusErr = buildJanusError(result)
+            if (janusErr) {
+                console.log(janusErr)
+            }
             console.log('Err stop janus videoRoom rtp forward')
             return false
         }
         return true
     }
+}
+
+const isJanusError = (payload) => {
+    return (payload && payload.janus === "error")
+}
+
+const isJanusPluginError = (payload) => {
+    return (payload && payload.janus === "success" &&
+    payload.plugindata &&
+    payload.plugindata.data &&
+    payload.plugindata.data.error &&
+    payload.plugindata.data.error_code)
+}
+
+const buildJanusError = (payload) => {
+    if (!payload) {
+        return nil
+    }
+
+    let plugin = false
+    let reason
+    if (result.error) {
+        reason = result.error.reason
+    }
+    if (!reason && result.plugindata && result.plugindata.data) {
+        reason = result.plugindata.data.error
+    }
+    let code
+    if (result.error) {
+        code = result.error.code
+    }
+    if (!code && result.plugindata && result.plugindata.data) {
+        code = result.plugindata.data.error_code
+        plugin = true
+    }
+    return `Err Janus ${plugin ? "plugin" : ""} [(${code}) ${reason}]`
 }
