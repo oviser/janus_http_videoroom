@@ -663,7 +663,7 @@ const isJanusError = (payload) => {
 }
 
 const isJanusPluginError = (payload) => {
-    return (payload && payload.janus === "success" &&
+    return (payload &&
     payload.plugindata &&
     payload.plugindata.data &&
     payload.plugindata.data.error &&
@@ -677,18 +677,18 @@ const buildJanusError = (payload) => {
 
     let plugin = false
     let reason
-    if (result.error) {
-        reason = result.error.reason
+    if (payload.error) {
+        reason = payload.error.reason
     }
-    if (!reason && result.plugindata && result.plugindata.data) {
-        reason = result.plugindata.data.error
+    if (!reason && payload.plugindata && payload.plugindata.data) {
+        reason = payload.plugindata.data.error
     }
     let code
-    if (result.error) {
-        code = result.error.code
+    if (payload.error) {
+        code = payload.error.code
     }
-    if (!code && result.plugindata && result.plugindata.data) {
-        code = result.plugindata.data.error_code
+    if (!code && payload.plugindata && payload.plugindata.data) {
+        code = payload.plugindata.data.error_code
         plugin = true
     }
     return `Err Janus ${plugin ? "plugin" : ""} [(${code}) ${reason}]`
